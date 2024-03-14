@@ -19,5 +19,8 @@ Cosa accade:
 
 6. Preparazione della bolla di consegna: Una volta terminato il processo di smistamento, il corriere preposto riceverà una bolla con tutte le informazioni utili sui pacchi caricati. Questa bolla viene generata consultando la base di conoscenza.
 
+![image](https://github.com/Nat-Amato/Smart-Postal-Hub/assets/48321178/80fff885-05ef-4f39-9d71-adef8b1fedea)
+
+
 Durante l’esecuzione del programma, sarà possibile interrogare il sistema del centro di smistamento, ad esempio per sapere quanti pacchi sono attualmente in elaborazione o quali pacchi sono stati caricati sulla vettura. 
 

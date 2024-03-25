@@ -1,6 +1,6 @@
 import sys
 import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QListWidget, QLineEdit, QLabel, QGraphicsView, QGraphicsScene
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QPushButton, QVBoxLayout, QMessageBox, QHBoxLayout, QWidget, QListWidget, QLineEdit, QLabel, QGraphicsView, QGraphicsScene
 import core as hub
 import copy
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -40,10 +40,34 @@ class MainApp(QMainWindow):
 
 
     def start_main_app(self):
-        n_pacchi = int(self.num_pacchi_input.text())
-        capienza_furgone = int(self.capienza_furgone_input.text())
+        n_pacchi = None
+        capienza_furgone = None
 
-        self.initialize_data(n_pacchi, capienza_furgone)
+        if self.num_pacchi_input.text().isdigit():
+            n_pacchi = int(self.num_pacchi_input.text())
+
+        if self.capienza_furgone_input.text().isdigit():
+            capienza_furgone = int(self.capienza_furgone_input.text())
+
+        if n_pacchi is not None and capienza_furgone is not None:
+            # Il codice da eseguire se entrambi i valori sono non nulli
+            self.initialize_data(n_pacchi, capienza_furgone)
+        else:
+            # Crea un'istanza di QMessageBox
+            msg_box = QMessageBox()
+
+            # Imposta il tipo di messaggio
+            msg_box.setIcon(QMessageBox.Critical)
+
+            # Imposta il testo del messaggio
+            msg_box.setText("Attenzione! \n Per favore, riempi entrambi i campi 'Numero di pacchi' e 'Capienza del furgone' e premi 'Conferma' prima di procedere.")
+
+            # Imposta il testo del pulsante di chiusura
+            msg_box.setStandardButtons(QMessageBox.Ok)
+
+            # Mostra il messaggio
+            msg_box.exec_()
+            return
         
         output_text = ""
         output_text += hub.gestisci_pacchi_modificato("Liguria", self.lista_liguria, self.furgone_liguria, self.pila_liguria, capienza_furgone)
@@ -567,16 +591,50 @@ class MainApp(QMainWindow):
 
     def search_pacco(self):
         package_id = self.id_input.text()
-        for i, item in enumerate(self.lista):
-            if item['id'] == package_id:
-                output = hub.stampa_pacco(self.lista, self.lista_persone, i)  
-                self.text_area.setText(output)
-                return
-        self.text_area.setText(f"Pacco {package_id} non trovato.")
+
+        if len(package_id) == 0:
+            # Crea un'istanza di QMessageBox
+            msg_box = QMessageBox()
+
+            # Imposta il tipo di messaggio
+            msg_box.setIcon(QMessageBox.Critical)
+
+            # Imposta il testo del messaggio
+            msg_box.setText("Attenzione! \n Per favore, riempi entrambi i campi 'ID Pacco' e premi 'Conferma' prima di procedere.")
+
+            # Imposta il testo del pulsante di chiusura
+            msg_box.setStandardButtons(QMessageBox.Ok)
+
+            # Mostra il messaggio
+            msg_box.exec_()
+            return
+        else:
+            for i, item in enumerate(self.lista):
+                if item['id'] == package_id:
+                    output = hub.stampa_pacco(self.lista, self.lista_persone, i)  
+                    self.text_area.setText(output)
+                    return
+            self.text_area.setText(f"Pacco {package_id} non trovato.")
 
     def find_package_path(self):
             # Ottiene l'ID del pacco dall'input dell'utente
             package_id = self.id_input.text()
+            if len(package_id) == 0:
+                # Crea un'istanza di QMessageBox
+                msg_box = QMessageBox()
+
+                # Imposta il tipo di messaggio
+                msg_box.setIcon(QMessageBox.Critical)
+
+                # Imposta il testo del messaggio
+                msg_box.setText("Attenzione! \n Per favore, riempi entrambi i campi 'ID Pacco' e premi 'Conferma' prima di procedere.")
+
+                # Imposta il testo del pulsante di chiusura
+                msg_box.setStandardButtons(QMessageBox.Ok)
+
+                # Mostra il messaggio
+                msg_box.exec_()
+                return
 
             # Trova il percorso del pacco
             for item in self.lista_path:
@@ -601,6 +659,23 @@ class MainApp(QMainWindow):
         # Ottiene i valori di input per la chiave e il valore del filtro
         filter_key = self.filter_key_input.text()
         filter_value = self.filter_value_input.text()
+        if len(filter_key) == 0 or len(filter_value) == 0:
+            # Crea un'istanza di QMessageBox
+            msg_box = QMessageBox()
+
+            # Imposta il tipo di messaggio
+            msg_box.setIcon(QMessageBox.Critical)
+
+            # Imposta il testo del messaggio
+            msg_box.setText("Attenzione! \n Per favore, riempi entrambi i campi per effettuare la ricerca filtrata.")
+
+            # Imposta il testo del pulsante di chiusura
+            msg_box.setStandardButtons(QMessageBox.Ok)
+
+            # Mostra il messaggio
+            msg_box.exec_()
+            return
+        
 
         if filter_key == 'Dimensioni' or filter_key == 'dimensioni':
             filter_key = 'd'
@@ -624,105 +699,122 @@ class MainApp(QMainWindow):
             self.text_area.append(f"ID: {item['id']}, Dimensioni: {item['d']}, Peso: {item['k']}, Fragilità: {item['f']}, Tipologia di spedizione: {item['x']}, CAP: {item['cap']}, Priorità: {item['priorità']}")
 
     def on_select(self, item):
-        if item.text() == "stampa grafo con pesi":
-            self.show_graph()
-        elif item.text() == "percorso di un determinato pacco":
-            self.find_package_path()
+        try:
+            if item.text() == "stampa grafo con pesi":
+                self.show_graph()
+            elif item.text() == "percorso di un determinato pacco":
+                self.find_package_path()
 
-        elif item.text() == "lista ordinata per priorità":
-            self.show_lista_pr()
+            elif item.text() == "lista ordinata per priorità":
+                self.show_lista_pr()
 
-        elif item.text() == "lista ordinata per ID":
-            self.show_lista_id()
+            elif item.text() == "lista ordinata per ID":
+                self.show_lista_id()
 
-        elif item.text() == "lista NORD":
-            self.show_lista_nord()
-        elif item.text() == "lista CENTRO":
-            self.show_lista_centro()
-        elif item.text() == "lista SUD":
-            self.show_lista_sud()
+            elif item.text() == "lista NORD":
+                self.show_lista_nord()
+            elif item.text() == "lista CENTRO":
+                self.show_lista_centro()
+            elif item.text() == "lista SUD":
+                self.show_lista_sud()
+                
+            elif item.text() == "lista Liguria":
+                self.show_lista_liguria()
+            elif item.text() == "lista Piemonte":
+                self.show_lista_piemonte()
+            elif item.text() == "lista Valle d'Aosta":
+                self.show_lista_valledaosta()
+            elif item.text() == "lista Lombardia":
+                self.show_lista_lombardia()
+            elif item.text() == "lista Trentino-Alto Adige":
+                self.show_lista_trentino()
+            elif item.text() == "lista Friuli-Venezia Giulia":
+                self.show_lista_friuli()
+            elif item.text() == "lista Veneto":
+                self.show_lista_veneto()
+            elif item.text() == "lista Emilia-Romagna":
+                self.show_lista_emilia()
+            elif item.text() == "lista Toscana":
+                self.show_lista_toscana()
+            elif item.text() == "lista Marche":
+                self.show_lista_marche()
+            elif item.text() == "lista Umbria":
+                self.show_lista_umbria()
+            elif item.text() == "lista Lazio":
+                self.show_lista_lazio()
+            elif item.text() == "lista Abruzzo":
+                self.show_lista_abruzzo()
+            elif item.text() == "lista Molise":
+                self.show_lista_molise()
+            elif item.text() == "lista Campania":
+                self.show_lista_campania()
+            elif item.text() == "lista Basilicata":
+                self.show_lista_basilicata()
+            elif item.text() == "lista Puglia":
+                self.show_lista_puglia()
+            elif item.text() == "lista Calabria":
+                self.show_lista_calabria()
+            elif item.text() == "lista Sicilia":
+                self.show_lista_sicilia()
+            elif item.text() == "lista Sardegna":
+                self.show_lista_sardegna()
             
-        elif item.text() == "lista Liguria":
-            self.show_lista_liguria()
-        elif item.text() == "lista Piemonte":
-            self.show_lista_piemonte()
-        elif item.text() == "lista Valle d'Aosta":
-            self.show_lista_valledaosta()
-        elif item.text() == "lista Lombardia":
-            self.show_lista_lombardia()
-        elif item.text() == "lista Trentino-Alto Adige":
-            self.show_lista_trentino()
-        elif item.text() == "lista Friuli-Venezia Giulia":
-            self.show_lista_friuli()
-        elif item.text() == "lista Veneto":
-            self.show_lista_veneto()
-        elif item.text() == "lista Emilia-Romagna":
-            self.show_lista_emilia()
-        elif item.text() == "lista Toscana":
-            self.show_lista_toscana()
-        elif item.text() == "lista Marche":
-            self.show_lista_marche()
-        elif item.text() == "lista Umbria":
-            self.show_lista_umbria()
-        elif item.text() == "lista Lazio":
-            self.show_lista_lazio()
-        elif item.text() == "lista Abruzzo":
-            self.show_lista_abruzzo()
-        elif item.text() == "lista Molise":
-            self.show_lista_molise()
-        elif item.text() == "lista Campania":
-            self.show_lista_campania()
-        elif item.text() == "lista Basilicata":
-            self.show_lista_basilicata()
-        elif item.text() == "lista Puglia":
-            self.show_lista_puglia()
-        elif item.text() == "lista Calabria":
-            self.show_lista_calabria()
-        elif item.text() == "lista Sicilia":
-            self.show_lista_sicilia()
-        elif item.text() == "lista Sardegna":
-            self.show_lista_sardegna()
-        
-        elif item.text() == "furgone Liguria":
-            self.show_furgone_liguria()
-        elif item.text() == "furgone Piemonte":
-            self.show_furgone_piemonte()
-        elif item.text() == "furgone Valle d'Aosta":
-            self.show_furgone_valledaosta()
-        elif item.text() == "furgone Lombardia":
-            self.show_furgone_lombardia()
-        elif item.text() == "furgone Trentino-Alto Adige":
-            self.show_furgone_trentino()
-        elif item.text() == "furgone Friuli-Venezia Giulia":
-            self.show_furgone_friuli()
-        elif item.text() == "furgone Veneto":
-            self.show_furgone_veneto()
-        elif item.text() == "furgone Emilia-Romagna":
-            self.show_furgone_emilia()
-        elif item.text() == "furgone Toscana":
-            self.show_furgone_toscana()
-        elif item.text() == "furgone Marche":
-            self.show_furgone_marche()
-        elif item.text() == "furgone Umbria":
-            self.show_furgone_umbria()
-        elif item.text() == "furgone Lazio":
-            self.show_furgone_lazio()
-        elif item.text() == "furgone Abruzzo":
-            self.show_furgone_abruzzo()
-        elif item.text() == "furgone Molise":
-            self.show_furgone_molise()
-        elif item.text() == "furgone Campania":
-            self.show_furgone_campania()
-        elif item.text() == "furgone Basilicata":
-            self.show_furgone_basilicata()
-        elif item.text() == "furgone Puglia":
-            self.show_furgone_puglia()
-        elif item.text() == "furgone Calabria":
-            self.show_furgone_calabria()
-        elif item.text() == "furgone Sicilia":
-            self.show_furgone_sicilia()
-        elif item.text() == "furgone Sardegna":
-            self.show_furgone_sardegna()
+            elif item.text() == "furgone Liguria":
+                self.show_furgone_liguria()
+            elif item.text() == "furgone Piemonte":
+                self.show_furgone_piemonte()
+            elif item.text() == "furgone Valle d'Aosta":
+                self.show_furgone_valledaosta()
+            elif item.text() == "furgone Lombardia":
+                self.show_furgone_lombardia()
+            elif item.text() == "furgone Trentino-Alto Adige":
+                self.show_furgone_trentino()
+            elif item.text() == "furgone Friuli-Venezia Giulia":
+                self.show_furgone_friuli()
+            elif item.text() == "furgone Veneto":
+                self.show_furgone_veneto()
+            elif item.text() == "furgone Emilia-Romagna":
+                self.show_furgone_emilia()
+            elif item.text() == "furgone Toscana":
+                self.show_furgone_toscana()
+            elif item.text() == "furgone Marche":
+                self.show_furgone_marche()
+            elif item.text() == "furgone Umbria":
+                self.show_furgone_umbria()
+            elif item.text() == "furgone Lazio":
+                self.show_furgone_lazio()
+            elif item.text() == "furgone Abruzzo":
+                self.show_furgone_abruzzo()
+            elif item.text() == "furgone Molise":
+                self.show_furgone_molise()
+            elif item.text() == "furgone Campania":
+                self.show_furgone_campania()
+            elif item.text() == "furgone Basilicata":
+                self.show_furgone_basilicata()
+            elif item.text() == "furgone Puglia":
+                self.show_furgone_puglia()
+            elif item.text() == "furgone Calabria":
+                self.show_furgone_calabria()
+            elif item.text() == "furgone Sicilia":
+                self.show_furgone_sicilia()
+            elif item.text() == "furgone Sardegna":
+                self.show_furgone_sardegna()
+        except:
+            # Crea un'istanza di QMessageBox
+            msg_box = QMessageBox()
+
+            # Imposta il tipo di messaggio
+            msg_box.setIcon(QMessageBox.Critical)
+
+            # Imposta il testo del messaggio
+            msg_box.setText("Attenzione! \n Per favore, riempi entrambi i campi 'Numero di pacchi' e 'Capienza del furgone' e premi 'Conferma' prima di procedere.")
+
+            # Imposta il testo del pulsante di chiusura
+            msg_box.setStandardButtons(QMessageBox.Ok)
+
+            # Mostra il messaggio
+            msg_box.exec_()
+            return
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
